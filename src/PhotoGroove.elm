@@ -3,6 +3,7 @@
     2020.04.10  GB  02  - Add thumbnails to the model
                 GB  03  - Add event processing
                 GB  04  - Build out the module
+    2020.04.11  GB  05  - Push to GitHub repository
 
 -}
 
