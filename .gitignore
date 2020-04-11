@@ -13,3 +13,5 @@ node_modules
 # Desktop Services Store on macOS
 .DS_Store
 
+# app.js file
+**/*.js
