@@ -4,6 +4,7 @@
                 GB  03  - Add event processing
                 GB  04  - Build out the module
     2020.04.11  GB  05  - Push to GitHub repository
+            13  GB  06  - Update and move README.md
 
 -}
 
