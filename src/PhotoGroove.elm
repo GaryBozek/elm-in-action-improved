@@ -8,6 +8,7 @@
     2020.04.14  GB  07  - Ch 3 - Talking to Servers
                         - Handle the communication states
                     08  - Implementing HTTP Requests
+                    09  - Decoding JSON
 
 
 -}
@@ -19,10 +20,12 @@ module PhotoGroove exposing (main)
 
 --import Array exposing (Array)
 import Browser
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
-import Http 
+import Html                             exposing (..)
+import Html.Attributes                  exposing (..)
+import Html.Events                      exposing (onClick)
+import Http
+import Json.Decode          as Decode   exposing (Decoder, int, list, string, succeed)
+import Json.Decode.Pipeline as Pipeline exposing (optional, required)
 import Random
 
 
@@ -45,7 +48,10 @@ type ThumbnailSize
 
 
 type alias Photo =
-    { url : String }
+    { url : String
+    , size : Int
+    , title : String
+    }
 
 
 type Status
@@ -57,6 +63,34 @@ type Status
 ---------------------------
 --  APPLICATION HELPERS  --
 ---------------------------
+
+
+{--  REPLACED BELOW
+photoDecoder : Decoder Photo
+photoDecoder =
+    map3
+        (\url size title -> { url = url, size = size, title = title })
+        (field "url"   string)
+        (field "size"  int)
+        (field "title" string)
+--}
+
+
+photoDecoder : Decoder Photo
+photoDecoder =
+    succeed Photo           -- replace the function with the Photo type alias constructor
+--    succeed buildPhoto
+        |> Pipeline.required "url"   string
+        |> Pipeline.required "size"  int
+        |> Pipeline.optional "title" string "(untitled)"
+ 
+
+{--  replaced this function with the type alias constructor
+buildPhoto : String -> Int -> String -> Photo
+buildPhoto url size title =
+    { url = url, size = size, title = title }
+--}
+
 
 
 --============================================================================
@@ -89,7 +123,7 @@ type Msg
     | ClickedSurpriseMe
     | GotRandomPhoto    Photo
       -- HTTP Requests
-    | GotPhotos         ( Result Http.Error String )
+    | GotPhotos         ( Result Http.Error ( List Photo ) )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -120,18 +154,12 @@ update msg model =
         GotRandomPhoto photo ->
             ( { model | status = selectUrl photo.url model.status }, Cmd.none )
 
-        GotPhotos (Ok responseStr) ->
-            --...translate responseStr into a list of Photos for our Model...
-            case String.split "," responseStr of
-                (firstUrl :: _) as urls ->      -- urls is assigned as the entire List
-                    let
-                        photos =
-                            -- List.map (\url -> { url = url }) urls   -- this maps the entire List
-                            List.map Photo urls   -- use the Photo constructor
-                    in
-                        ( { model | status = Loaded photos firstUrl }, Cmd.none )
+        GotPhotos (Ok photos) ->
+            case photos of
+                (first :: rest) ->
+                    ( { model | status = Loaded photos first.url }, Cmd.none )
                     
-                [] ->   -- this case is for an empty List
+                [] ->  
                     ( { model | status = Errored "0 photos found" }, Cmd.none )
 
         GotPhotos  (Err _) ->
@@ -212,7 +240,8 @@ viewLoaded photos selectedUrl chosenSize =
 -- Create the image url  
 viewThumbnail selectedUrl thumb =
     img
-        [ src (urlPrefix ++ thumb.url)
+        [ src ( urlPrefix ++ thumb.url )
+        , title ( thumb.title ++ " [" ++ String.fromInt thumb.size ++ " KB]" )
         , classList [ ( "selected"
                       , selectedUrl == thumb.url 
                       ) 
@@ -257,13 +286,13 @@ sizeToString size =
 initialCmd : Cmd Msg
 initialCmd =
     Http.get
-        { url = "http://elm-in-action.com/photos/list"
-        , expect = Http.expectString GotPhotos
+        { url = "http://elm-in-action.com/photos/list.json"
+        , expect = Http.expectJson GotPhotos ( Decode.list photoDecoder )
         }
 
 
 -- more traditional elm structure for an application
--- main : Program () Model Msg  -->  alternative:  replace unit type "()"" with Never (see elm/Core.Basics)
+-- main : Program () Model Msg  -->  alternative:  replace unit type "()" with Never (see elm/Core.Basics)
 main : Program () Model Msg
 main =
     Browser.element
