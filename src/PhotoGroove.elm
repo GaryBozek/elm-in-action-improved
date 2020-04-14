@@ -7,6 +7,7 @@
     2020.04.13  GB  06  - Update and move README.md     TAG:  Chapter 3 - Compiler as Assistant
     2020.04.14  GB  07  - Ch 3 - Talking to Servers
                         - Handle the communication states
+                    08  - Implementing HTTP Requests
 
 
 -}
@@ -21,6 +22,7 @@ import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Http 
 import Random
 
 
@@ -86,6 +88,8 @@ type Msg
     | ClickedSize       ThumbnailSize
     | ClickedSurpriseMe
     | GotRandomPhoto    Photo
+      -- HTTP Requests
+    | GotPhotos         ( Result Http.Error String )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -115,7 +119,24 @@ update msg model =
 
         GotRandomPhoto photo ->
             ( { model | status = selectUrl photo.url model.status }, Cmd.none )
-     
+
+        GotPhotos (Ok responseStr) ->
+            --...translate responseStr into a list of Photos for our Model...
+            case String.split "," responseStr of
+                (firstUrl :: _) as urls ->      -- urls is assigned as the entire List
+                    let
+                        photos =
+                            -- List.map (\url -> { url = url }) urls   -- this maps the entire List
+                            List.map Photo urls   -- use the Photo constructor
+                    in
+                        ( { model | status = Loaded photos firstUrl }, Cmd.none )
+                    
+                [] ->   -- this case is for an empty List
+                    ( { model | status = Errored "0 photos found" }, Cmd.none )
+
+        GotPhotos  (Err _) ->
+            ( { model | status = Errored "Server error!" }, Cmd.none )
+
 
 ----------------------
 --  UPDATE HELPERS  --
@@ -233,12 +254,21 @@ sizeToString size =
 --============================================================================
 
 
+initialCmd : Cmd Msg
+initialCmd =
+    Http.get
+        { url = "http://elm-in-action.com/photos/list"
+        , expect = Http.expectString GotPhotos
+        }
+
+
 -- more traditional elm structure for an application
+-- main : Program () Model Msg  -->  alternative:  replace unit type "()"" with Never (see elm/Core.Basics)
 main : Program () Model Msg
 main =
     Browser.element
-        { init          = \flags -> ( initialModel, Cmd.none )
+        { init          = \_ -> ( initialModel, initialCmd )
         , view          = view
         , update        = update
-        , subscriptions = \model -> Sub.none
+        , subscriptions = \_ -> Sub.none
         }
