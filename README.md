@@ -22,7 +22,7 @@ The source changes are pushed at the end of the chapter and are given a Chapter 
 
 1. Go to the root of the repository
 2. Click the `Branch: master` Drop Down List Box
-3. Click the `Tag` Tab  **-OR-**  Enter the Tag in the Search box
+3. Click the `Tag` Tab  **-OR-**  Enter the Tag in the Search box  **-OR-**  Click on the `release` Link
 4. Click on the Tag desired
    - This will open the source code associated with the Version/Release
 

@@ -4,7 +4,10 @@
                 GB  03  - Add event processing
                 GB  04  - Build out the module
     2020.04.11  GB  05  - Push to GitHub repository
-            13  GB  06  - Update and move README.md
+    2020.04.13  GB  06  - Update and move README.md     TAG:  Chapter 3 - Compiler as Assistant
+    2020.04.14  GB  07  - Ch 3 - Talking to Servers
+                        - Handle the communication states
+
 
 -}
 
@@ -13,7 +16,7 @@
 module PhotoGroove exposing (main)
 
 
-import Array exposing (Array)
+--import Array exposing (Array)
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -22,9 +25,9 @@ import Random
 
 
 
--------------------------
---  APPLICATION CODE   --
--------------------------
+--============================================================================
+--=  APPLICATION CODE                                                        =
+--============================================================================
     
 
 -- Base URL for images
@@ -43,40 +46,146 @@ type alias Photo =
     { url : String }
 
 
-photoArray : Array Photo
-photoArray =
-    Array.fromList initialModel.photos
+type Status
+    = Loading
+    | Loaded (List Photo) String
+    | Errored String
 
 
+---------------------------
+--  APPLICATION HELPERS  --
+---------------------------
 
--------------
---  MODEL  --
--------------
+
+--============================================================================
+--=  MODEL                                                                   =
+--============================================================================
 
 
 type alias Model =
-    { photos      : List Photo
-    , selectedUrl : String
-    , chosenSize  : ThumbnailSize
+    { status     : Status
+    , chosenSize : ThumbnailSize
     }
 
 
 initialModel : Model
 initialModel =
-    { photos = 
-        [ { url = "1.jpeg" }
-        , { url = "2.jpeg" }
-        , { url = "3.jpeg" }
-        ]
-    , selectedUrl = "1.jpeg"
+    { status      = Loading
     , chosenSize  = Small
     }
 
 
 
----------------
---  HELPERS  --
----------------
+--============================================================================
+--=  UPDATE                                                                  =
+--============================================================================
+
+
+type Msg
+    = ClickedPhoto      String
+    | ClickedSize       ThumbnailSize
+    | ClickedSurpriseMe
+    | GotRandomPhoto    Photo
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        ClickedPhoto url ->
+            ( { model | status = selectUrl url model.status }, Cmd.none )
+
+        ClickedSize size ->
+            ( { model | chosenSize = size }, Cmd.none )
+
+        ClickedSurpriseMe ->
+            case model.status of
+                Loaded (firstPhoto :: otherPhotos) _ ->
+                    Random.uniform firstPhoto otherPhotos
+                        |> Random.generate GotRandomPhoto
+                        |> Tuple.pair model
+                
+                Loaded [] _ ->
+                    ( model, Cmd.none)
+                
+                Loading ->
+                    ( model, Cmd.none )
+                
+                Errored errorMessage ->
+                    ( model, Cmd.none )
+
+        GotRandomPhoto photo ->
+            ( { model | status = selectUrl photo.url model.status }, Cmd.none )
+     
+
+----------------------
+--  UPDATE HELPERS  --
+----------------------
+
+
+selectUrl : String -> Status -> Status
+selectUrl url status =
+    case status of
+        Loaded photos _ ->
+            Loaded photos url
+        
+        Loading ->
+            status
+        
+        Errored errorMessage ->
+            status
+
+
+
+--============================================================================
+--=  VIEW                                                                    =
+--============================================================================
+
+
+view : Model -> Html Msg
+view model =
+    div 
+        [ class "content" ] <|
+        case model.status of
+            Loaded photos selectedUrl ->
+                viewLoaded photos selectedUrl model.chosenSize
+            
+            Loading ->
+                []
+            
+            Errored errorMessage ->
+                [ text ("Error: " ++ errorMessage) ]
+
+
+viewLoaded : List Photo -> String -> ThumbnailSize -> List (Html Msg)
+viewLoaded photos selectedUrl chosenSize = 
+        [ h1 
+            [] 
+            [ text "Photo Groove" ]
+        , button
+            [ onClick ClickedSurpriseMe ]
+            [ text "Surprise Me!" ]
+        , h3 
+            [] 
+            [ text "Thumbnail Size:" ]
+        , div 
+            [ id "choose-size" ]
+            ( List.map viewSizeChooser [ Small, Medium, Large ] )
+        , div 
+            [ id "thumbnails"
+            , class ( sizeToString chosenSize ) 
+            ]
+            ( List.map ( viewThumbnail selectedUrl ) photos )
+        , img
+            [ class "large"
+            , src ( urlPrefix ++ "large/" ++ selectedUrl )  -- uses image:  "http://elm-in-action.com/large/1.jpeg"
+            ]
+            []
+        ]
+
+
+--------------------
+--  VIEW HELPERS  --
+--------------------
 
 
 -- Create the image url  
@@ -118,89 +227,10 @@ sizeToString size =
             "large"
 
 
-getPhotoUrl : Int -> String
-getPhotoUrl index =
-    case Array.get index photoArray of
-        Just photo ->
-            photo.url
 
-        Nothing ->
-            ""
-
-
-randomPhotoPicker : Random.Generator Int
-randomPhotoPicker =
-    Random.int 0 ( Array.length photoArray - 1 )
-
-
-
-------------------
-----  UPDATE  ----
-------------------
-
-
-type Msg
-    = ClickedPhoto      String
-    | ClickedSize       ThumbnailSize
-    | ClickedSurpriseMe
-    | GotSelectedIndex  Int
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        ClickedPhoto url ->
-            ( { model | selectedUrl = url }, Cmd.none )
-
-        ClickedSize size ->
-            ( { model | chosenSize = size }, Cmd.none )
-
-        ClickedSurpriseMe ->
-            ( model, Random.generate GotSelectedIndex randomPhotoPicker )
-
-        GotSelectedIndex index ->
-            ( { model | selectedUrl = getPhotoUrl index }, Cmd.none )
-        
-
-
-------------
---  VIEW  --
-------------
-
-
---view : Model -> Html Msg      -- book/online error:  Html not defined yet
-view : Model -> Html Msg
-view model =
-    div 
-        [ class "content" ]
-        [ h1 
-            [] 
-            [ text "Photo Groove" ]
-        , button
-            [ onClick ClickedSurpriseMe ]
-            [ text "Surprise Me!" ]
-        , h3 
-            [] 
-            [ text "Thumbnail Size:" ]
-        , div 
-            [ id "choose-size" ]
-            ( List.map viewSizeChooser [ Small, Medium, Large ] )
-        , div 
-            [ id "thumbnails"
-            , class ( sizeToString model.chosenSize ) 
-            ]
-            ( List.map ( viewThumbnail model.selectedUrl ) model.photos )
-        , img
-            [ class "large"
-            , src ( urlPrefix ++ "large/" ++ model.selectedUrl )  -- uses image:  "http://elm-in-action.com/large/1.jpeg"
-            ]
-            []
-        ]
- 
-
-------------------------
-----  MAIN PROGRAM  ----
-------------------------
+--============================================================================
+--=  MAIN PROGRAM                                                            =
+--============================================================================
 
 
 -- more traditional elm structure for an application
