@@ -5,7 +5,7 @@
                 GB  04  - Build out the module
     2020.04.11  GB  05  - Push to GitHub repository
     2020.04.13  GB  06  - Update and move README.md     TAG:  Chapter 3 - Compiler as Assistant
-    2020.04.14  GB  07  - Ch 3 - Talking to Servers
+    2020.04.14  GB  07  - Ch 4 - Talking to Servers
                         - Handle the communication states
                     08  - Implementing HTTP Requests
                     09  - Decoding JSON
