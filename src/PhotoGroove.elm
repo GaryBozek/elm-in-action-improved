@@ -12,6 +12,7 @@
                     10  - Ch 5 - Talking to JavaScript
                         - Rendering Custom Elements
     2020.04.15  GB  11  - Sending Data to JavaScript
+                    12  - Getting Data from JS (subscriptions/flags)
 
 
 -}
@@ -104,6 +105,7 @@ buildPhoto url size title =
 
 type alias Model =
     { status     : Status
+    , activity   : String
     , chosenSize : ThumbnailSize
     , hue        : Int
     , ripple     : Int
@@ -114,6 +116,7 @@ type alias Model =
 initialModel : Model
 initialModel =
     { status      = Loading
+    , activity    = ""
     , chosenSize  = Small
     , hue         = 5
     , ripple      = 5
@@ -138,6 +141,8 @@ type Msg
     | SlidHue           Int
     | SlidRipple        Int
     | SlidNoise         Int
+      -- Data from JavaScript
+    | GotActivity       String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -210,6 +215,12 @@ update msg model =
   
         SlidNoise noise ->
             applyFilters { model | noise  = noise  }
+
+          -- Data from JavaScript
+        GotActivity activity ->
+            ( { model | activity = activity }
+            , Cmd.none
+            )
 
 
 ----------------------
@@ -312,7 +323,10 @@ viewLoaded photos selectedUrl model =
             [ text "Photo Groove" ]
         , button
             [ onClick ClickedSurpriseMe ]
-            [ text "Surprise Me!" ]
+            [ text "Surprise Me!"       ]
+        , div 
+            [ class "activity"    ] 
+            [ text model.activity ]
         , div 
             [ class "filters" ]
             [ viewFilter SlidHue    "Hue"    model.hue
@@ -426,6 +440,7 @@ type alias FilterOptions =
 
 port setFilters : FilterOptions -> Cmd msg
 
+port activityChanges : (String -> msg) -> Sub msg
 
 
 --============================================================================
@@ -443,11 +458,22 @@ initialCmd =
 
 -- more traditional elm structure for an application
 -- main : Program () Model Msg  -->  alternative:  replace unit type "()" with Never (see elm/Core.Basics)
-main : Program () Model Msg
+main : Program Float Model Msg
 main =
     Browser.element
-        { init          = \_ -> ( initialModel, initialCmd )
+        { init          = init
         , view          = view
         , update        = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = \_ -> activityChanges GotActivity
         }
+
+
+init : Float -> ( Model, Cmd Msg )
+init flags =
+    let
+        activity =
+            "Initializing Pasta v" ++ String.fromFloat flags
+    in
+    ( { initialModel | activity = activity }
+    , initialCmd 
+    )    

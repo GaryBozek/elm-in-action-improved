@@ -80,87 +80,6 @@ function A9(fun, a, b, c, d, e, f, g, h, i) {
 console.warn('Compiled in DEV mode. Follow the advice at https://elm-lang.org/0.19.1/optimize for better performance and smaller assets.');
 
 
-var _List_Nil_UNUSED = { $: 0 };
-var _List_Nil = { $: '[]' };
-
-function _List_Cons_UNUSED(hd, tl) { return { $: 1, a: hd, b: tl }; }
-function _List_Cons(hd, tl) { return { $: '::', a: hd, b: tl }; }
-
-
-var _List_cons = F2(_List_Cons);
-
-function _List_fromArray(arr)
-{
-	var out = _List_Nil;
-	for (var i = arr.length; i--; )
-	{
-		out = _List_Cons(arr[i], out);
-	}
-	return out;
-}
-
-function _List_toArray(xs)
-{
-	for (var out = []; xs.b; xs = xs.b) // WHILE_CONS
-	{
-		out.push(xs.a);
-	}
-	return out;
-}
-
-var _List_map2 = F3(function(f, xs, ys)
-{
-	for (var arr = []; xs.b && ys.b; xs = xs.b, ys = ys.b) // WHILE_CONSES
-	{
-		arr.push(A2(f, xs.a, ys.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_map3 = F4(function(f, xs, ys, zs)
-{
-	for (var arr = []; xs.b && ys.b && zs.b; xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
-	{
-		arr.push(A3(f, xs.a, ys.a, zs.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_map4 = F5(function(f, ws, xs, ys, zs)
-{
-	for (var arr = []; ws.b && xs.b && ys.b && zs.b; ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
-	{
-		arr.push(A4(f, ws.a, xs.a, ys.a, zs.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_map5 = F6(function(f, vs, ws, xs, ys, zs)
-{
-	for (var arr = []; vs.b && ws.b && xs.b && ys.b && zs.b; vs = vs.b, ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
-	{
-		arr.push(A5(f, vs.a, ws.a, xs.a, ys.a, zs.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_sortBy = F2(function(f, xs)
-{
-	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
-		return _Utils_cmp(f(a), f(b));
-	}));
-});
-
-var _List_sortWith = F2(function(f, xs)
-{
-	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
-		var ord = A2(f, a, b);
-		return ord === $elm$core$Basics$EQ ? 0 : ord === $elm$core$Basics$LT ? -1 : 1;
-	}));
-});
-
-
-
 var _JsArray_empty = [];
 
 function _JsArray_singleton(value)
@@ -790,6 +709,87 @@ function _Utils_ap(xs, ys)
 	}
 	return root;
 }
+
+
+
+var _List_Nil_UNUSED = { $: 0 };
+var _List_Nil = { $: '[]' };
+
+function _List_Cons_UNUSED(hd, tl) { return { $: 1, a: hd, b: tl }; }
+function _List_Cons(hd, tl) { return { $: '::', a: hd, b: tl }; }
+
+
+var _List_cons = F2(_List_Cons);
+
+function _List_fromArray(arr)
+{
+	var out = _List_Nil;
+	for (var i = arr.length; i--; )
+	{
+		out = _List_Cons(arr[i], out);
+	}
+	return out;
+}
+
+function _List_toArray(xs)
+{
+	for (var out = []; xs.b; xs = xs.b) // WHILE_CONS
+	{
+		out.push(xs.a);
+	}
+	return out;
+}
+
+var _List_map2 = F3(function(f, xs, ys)
+{
+	for (var arr = []; xs.b && ys.b; xs = xs.b, ys = ys.b) // WHILE_CONSES
+	{
+		arr.push(A2(f, xs.a, ys.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_map3 = F4(function(f, xs, ys, zs)
+{
+	for (var arr = []; xs.b && ys.b && zs.b; xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
+	{
+		arr.push(A3(f, xs.a, ys.a, zs.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_map4 = F5(function(f, ws, xs, ys, zs)
+{
+	for (var arr = []; ws.b && xs.b && ys.b && zs.b; ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
+	{
+		arr.push(A4(f, ws.a, xs.a, ys.a, zs.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_map5 = F6(function(f, vs, ws, xs, ys, zs)
+{
+	for (var arr = []; vs.b && ws.b && xs.b && ys.b && zs.b; vs = vs.b, ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
+	{
+		arr.push(A5(f, vs.a, ws.a, xs.a, ys.a, zs.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_sortBy = F2(function(f, xs)
+{
+	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
+		return _Utils_cmp(f(a), f(b));
+	}));
+});
+
+var _List_sortWith = F2(function(f, xs)
+{
+	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
+		var ord = A2(f, a, b);
+		return ord === $elm$core$Basics$EQ ? 0 : ord === $elm$core$Basics$LT ? -1 : 1;
+	}));
+});
 
 
 
@@ -4613,8 +4613,9 @@ function _Time_getZoneName()
 		callback(_Scheduler_succeed(name));
 	});
 }
-var $elm$core$Basics$EQ = {$: 'EQ'};
-var $elm$core$Basics$LT = {$: 'LT'};
+var $author$project$PhotoGroove$GotActivity = function (a) {
+	return {$: 'GotActivity', a: a};
+};
 var $elm$core$List$cons = _List_cons;
 var $elm$core$Elm$JsArray$foldr = _JsArray_foldr;
 var $elm$core$Array$foldr = F3(
@@ -4692,7 +4693,9 @@ var $elm$core$Set$toList = function (_v0) {
 	var dict = _v0.a;
 	return $elm$core$Dict$keys(dict);
 };
+var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
+var $elm$core$Basics$LT = {$: 'LT'};
 var $elm$core$Result$Err = function (a) {
 	return {$: 'Err', a: a};
 };
@@ -5088,6 +5091,8 @@ var $elm$core$Result$isOk = function (result) {
 		return false;
 	}
 };
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $author$project$PhotoGroove$activityChanges = _Platform_incomingPort('activityChanges', $elm$json$Json$Decode$string);
 var $elm$json$Json$Decode$map = _Json_map1;
 var $elm$json$Json$Decode$map2 = _Json_map2;
 var $elm$json$Json$Decode$succeed = _Json_succeed;
@@ -5402,6 +5407,8 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
+var $elm$json$Json$Decode$float = _Json_decodeFloat;
+var $elm$core$String$fromFloat = _String_fromNumber;
 var $author$project$PhotoGroove$GotPhotos = function (a) {
 	return {$: 'GotPhotos', a: a};
 };
@@ -6256,7 +6263,6 @@ var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required = F3(
 			A2($elm$json$Json$Decode$field, key, valDecoder),
 			decoder);
 	});
-var $elm$json$Json$Decode$string = _Json_decodeString;
 var $author$project$PhotoGroove$photoDecoder = A4(
 	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$optional,
 	'title',
@@ -6281,9 +6287,15 @@ var $author$project$PhotoGroove$initialCmd = $elm$http$Http$get(
 	});
 var $author$project$PhotoGroove$Loading = {$: 'Loading'};
 var $author$project$PhotoGroove$Small = {$: 'Small'};
-var $author$project$PhotoGroove$initialModel = {chosenSize: $author$project$PhotoGroove$Small, hue: 5, noise: 5, ripple: 5, status: $author$project$PhotoGroove$Loading};
-var $elm$core$Platform$Sub$batch = _Platform_batch;
-var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+var $author$project$PhotoGroove$initialModel = {activity: '', chosenSize: $author$project$PhotoGroove$Small, hue: 5, noise: 5, ripple: 5, status: $author$project$PhotoGroove$Loading};
+var $author$project$PhotoGroove$init = function (flags) {
+	var activity = 'Initializing Pasta v' + $elm$core$String$fromFloat(flags);
+	return _Utils_Tuple2(
+		_Utils_update(
+			$author$project$PhotoGroove$initialModel,
+			{activity: activity}),
+		$author$project$PhotoGroove$initialCmd);
+};
 var $author$project$PhotoGroove$Errored = function (a) {
 	return {$: 'Errored', a: a};
 };
@@ -6687,12 +6699,19 @@ var $author$project$PhotoGroove$update = F2(
 					_Utils_update(
 						model,
 						{ripple: ripple}));
-			default:
+			case 'SlidNoise':
 				var noise = msg.a;
 				return $author$project$PhotoGroove$applyFilters(
 					_Utils_update(
 						model,
 						{noise: noise}));
+			default:
+				var activity = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{activity: activity}),
+					$elm$core$Platform$Cmd$none);
 		}
 	});
 var $elm$html$Html$Attributes$stringProperty = F2(
@@ -6935,6 +6954,16 @@ var $author$project$PhotoGroove$viewLoaded = F3(
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
+						$elm$html$Html$Attributes$class('activity')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(model.activity)
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
 						$elm$html$Html$Attributes$class('filters')
 					]),
 				_List_fromArray(
@@ -7010,14 +7039,11 @@ var $author$project$PhotoGroove$view = function (model) {
 };
 var $author$project$PhotoGroove$main = $elm$browser$Browser$element(
 	{
-		init: function (_v0) {
-			return _Utils_Tuple2($author$project$PhotoGroove$initialModel, $author$project$PhotoGroove$initialCmd);
-		},
-		subscriptions: function (_v1) {
-			return $elm$core$Platform$Sub$none;
+		init: $author$project$PhotoGroove$init,
+		subscriptions: function (_v0) {
+			return $author$project$PhotoGroove$activityChanges($author$project$PhotoGroove$GotActivity);
 		},
 		update: $author$project$PhotoGroove$update,
 		view: $author$project$PhotoGroove$view
 	});
-_Platform_export({'PhotoGroove':{'init':$author$project$PhotoGroove$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));
+_Platform_export({'PhotoGroove':{'init':$author$project$PhotoGroove$main($elm$json$Json$Decode$float)(0)}});}(this));
