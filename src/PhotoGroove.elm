@@ -11,13 +11,14 @@
                     09  - Decoding JSON
                     10  - Ch 5 - Talking to JavaScript
                         - Rendering Custom Elements
+    2020.04.15  GB  11  - Sending Data to JavaScript
 
 
 -}
 
 
 
-module PhotoGroove exposing (main)
+port module PhotoGroove exposing (main)
 
 
 --import Array exposing (Array)
@@ -143,9 +144,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ClickedPhoto url ->
-            ( { model | status = selectUrl url model.status }
-            , Cmd.none 
-            )
+            applyFilters { model | status = selectUrl url model.status }
 
         ClickedSize size ->
             ( { model | chosenSize = size }
@@ -175,17 +174,22 @@ update msg model =
                     )
 
         GotRandomPhoto photo ->
-            ( { model | status = selectUrl photo.url model.status }
-            , Cmd.none 
-            )
+            applyFilters { model | status = selectUrl photo.url model.status }
 
         -- HTTP Requests
         GotPhotos (Ok photos) ->
             case photos of
-                (first :: rest) ->
-                    ( { model | status = Loaded photos first.url }
-                    , Cmd.none 
-                    )
+                first :: rest ->
+                    applyFilters
+                        { model
+                            | status =
+                                case List.head photos of
+                                    Just photo ->
+                                        Loaded photos photo.url
+        
+                                    Nothing ->
+                                        Loaded [] ""
+                        }
                     
                 [] ->  
                     ( { model | status = Errored "0 photos found" }
@@ -199,19 +203,13 @@ update msg model =
 
         -- Sliders
         SlidHue hue ->
-            ( { model | hue = hue }
-            , Cmd.none
-            )
+            applyFilters { model | hue    = hue    }
 
         SlidRipple ripple ->
-            ( { model | ripple = ripple }
-            , Cmd.none
-            )
+            applyFilters { model | ripple = ripple }
   
         SlidNoise noise ->
-            ( { model | noise = noise }
-            , Cmd.none
-            )
+            applyFilters { model | noise  = noise  }
 
 
 ----------------------
@@ -254,6 +252,37 @@ onSlide toMsg =
     in
     on "slide" msgDecoder
 --}
+
+
+applyFilters : Model -> ( Model, Cmd Msg )
+applyFilters model =
+    case model.status of
+        Loaded photos selectedUrl ->
+            let
+                filters =
+                    [ { name = "Hue",    amount = toFloat model.hue    / 11 }
+                    , { name = "Ripple", amount = toFloat model.ripple / 11 }
+                    , { name = "Noise",  amount = toFloat model.noise  / 11 }
+                    ]
+ 
+                url =
+                    urlPrefix ++ "large/" ++ selectedUrl
+            in
+            ( model
+            , setFilters { url     = url
+                         , filters = filters 
+                         } 
+            )
+ 
+        Loading ->
+            ( model
+            , Cmd.none 
+            )
+ 
+        Errored errorMessage ->
+            ( model
+            , Cmd.none 
+            )
 
 
 --============================================================================
@@ -301,11 +330,18 @@ viewLoaded photos selectedUrl model =
             , class ( sizeToString model.chosenSize ) 
             ]
             ( List.map ( viewThumbnail selectedUrl ) photos )
+        , canvas 
+            [ id    "main-canvas"
+            , class "large" 
+            ] 
+            []
+{-- replace img with canvas       
         , img
             [ class "large"
             , src ( urlPrefix ++ "large/" ++ selectedUrl )      -- uses image:  "http://elm-in-action.com/large/1.jpeg"
             ]
             []
+--}
         ]
 
 
@@ -372,6 +408,23 @@ viewFilter toMsg name magnitude =
             [] 
             [ text ( String.fromInt magnitude ) ]
         ]
+
+
+
+--============================================================================
+--=  PORTS                                                                   =
+--============================================================================
+
+
+type alias FilterOptions =
+    { url     : String
+    , filters : List { name   : String
+                     , amount : Float   
+                     }
+    }
+
+
+port setFilters : FilterOptions -> Cmd msg
 
 
 
