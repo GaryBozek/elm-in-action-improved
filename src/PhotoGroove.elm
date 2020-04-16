@@ -13,13 +13,15 @@
                         - Rendering Custom Elements
     2020.04.15  GB  11  - Sending Data to JavaScript
                     12  - Getting Data from JS (subscriptions/flags)
+    2020.04.16  GB  13  - Ch 6 - Testing
+                        - Writing Unit Tests
 
 
 -}
 
 
 
-port module PhotoGroove exposing (main)
+port module PhotoGroove exposing (main, photoDecoder)
 
 
 --import Array exposing (Array)
