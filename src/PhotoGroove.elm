@@ -15,13 +15,14 @@
                     12  - Getting Data from JS (subscriptions/flags)
     2020.04.16  GB  13  - Ch 6 - Testing
                         - Writing Unit Tests
+                    14  - Testing Update
 
 
 -}
 
 
 
-port module PhotoGroove exposing (main, photoDecoder)
+port module PhotoGroove exposing (main, Model, Msg(..), Photo, initialModel, photoDecoder, update)
 
 
 --import Array exposing (Array)
