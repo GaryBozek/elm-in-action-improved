@@ -1,4 +1,5 @@
 {-  PURPOSE:    Elm In Action: example code
+
     2020.04.09  GB  01  - Ch 2 - Step 1 - Create PhotoGroove
     2020.04.10  GB  02  - Add thumbnails to the model
                 GB  03  - Add event processing
@@ -17,6 +18,7 @@
                         - Writing Unit Tests, JSON Decoders, Writing Fuzz Tests
                     14  - Testing Update, multiple test in one function
     2020.04.17  GB  15  - Test View, DOM structure, User Interactions
+
 
 
 -}
@@ -44,14 +46,6 @@ import Random
 --============================================================================
 
 
-initialCmd : Cmd Msg
-initialCmd =
-    Http.get
-        { url = "http://elm-in-action.com/photos/list.json"
-        , expect = Http.expectJson GotPhotos ( Decode.list photoDecoder )
-        }
-
-
 -- more traditional elm structure for an application
 -- main : Program () Model Msg  -->  alternative:  replace unit type "()" with Never (see elm/Core.Basics)
 main : Program Float Model Msg
@@ -73,6 +67,14 @@ init flags =
     ( { initialModel | activity = activity }
     , initialCmd 
     )    
+
+
+initialCmd : Cmd Msg
+initialCmd =
+    Http.get
+        { url = "http://elm-in-action.com/photos/list.json"
+        , expect = Http.expectJson GotPhotos ( Decode.list photoDecoder )
+        }
 
 
 
