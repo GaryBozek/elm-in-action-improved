@@ -14,15 +14,16 @@
     2020.04.15  GB  11  - Sending Data to JavaScript
                     12  - Getting Data from JS (subscriptions/flags)
     2020.04.16  GB  13  - Ch 6 - Testing
-                        - Writing Unit Tests
-                    14  - Testing Update
+                        - Writing Unit Tests, JSON Decoders, Writing Fuzz Tests
+                    14  - Testing Update, multiple test in one function
+    2020.04.17  GB  15  - Test View, DOM structure, User Interactions
 
 
 -}
 
 
 
-port module PhotoGroove exposing (main, Model, Msg(..), Photo, initialModel, photoDecoder, update)
+port module PhotoGroove exposing (main, Model, Msg(..), Photo, Status(..), initialModel, photoDecoder, update, urlPrefix, view)
 
 
 --import Array exposing (Array)
@@ -38,6 +39,90 @@ import Random
 
 
 
+--============================================================================
+--=  MAIN PROGRAM                                                            =
+--============================================================================
+
+
+initialCmd : Cmd Msg
+initialCmd =
+    Http.get
+        { url = "http://elm-in-action.com/photos/list.json"
+        , expect = Http.expectJson GotPhotos ( Decode.list photoDecoder )
+        }
+
+
+-- more traditional elm structure for an application
+-- main : Program () Model Msg  -->  alternative:  replace unit type "()" with Never (see elm/Core.Basics)
+main : Program Float Model Msg
+main =
+    Browser.element
+        { init          = init
+        , view          = view
+        , update        = update
+        , subscriptions = \_ -> activityChanges GotActivity
+        }
+
+
+init : Float -> ( Model, Cmd Msg )
+init flags =
+    let
+        activity =
+            "Initializing Pasta v" ++ String.fromFloat flags
+    in
+    ( { initialModel | activity = activity }
+    , initialCmd 
+    )    
+
+
+
+
+--============================================================================
+--=  MODEL                                                                   =
+--============================================================================
+
+
+type alias Model =
+    { status     : Status
+    , activity   : String
+    , chosenSize : ThumbnailSize
+    , hue        : Int
+    , ripple     : Int
+    , noise      : Int
+    }
+
+
+initialModel : Model
+initialModel =
+    { status      = Loading
+    , activity    = ""
+    , chosenSize  = Small
+    , hue         = 5
+    , ripple      = 5
+    , noise       = 5
+    }
+
+
+
+--============================================================================
+--=  PORTS                                                                   =
+--============================================================================
+
+
+type alias FilterOptions =
+    { url     : String
+    , filters : List { name   : String
+                     , amount : Float   
+                     }
+    }
+
+
+port setFilters : FilterOptions -> Cmd msg
+
+port activityChanges : (String -> msg) -> Sub msg
+
+
+    
 --============================================================================
 --=  APPLICATION CODE                                                        =
 --============================================================================
@@ -102,33 +187,6 @@ buildPhoto url size title =
 
 
 --============================================================================
---=  MODEL                                                                   =
---============================================================================
-
-
-type alias Model =
-    { status     : Status
-    , activity   : String
-    , chosenSize : ThumbnailSize
-    , hue        : Int
-    , ripple     : Int
-    , noise      : Int
-    }
-
-
-initialModel : Model
-initialModel =
-    { status      = Loading
-    , activity    = ""
-    , chosenSize  = Small
-    , hue         = 5
-    , ripple      = 5
-    , noise       = 5
-    }
-
-
-
---============================================================================
 --=  UPDATE                                                                  =
 --============================================================================
 
@@ -172,7 +230,7 @@ update msg model =
                     )
                 
                 Loading ->
-                    ( model
+                    ( model    
                     , Cmd.none 
                     )
                 
@@ -297,6 +355,7 @@ applyFilters model =
             ( model
             , Cmd.none 
             )
+
 
 
 --============================================================================
@@ -425,58 +484,3 @@ viewFilter toMsg name magnitude =
             [] 
             [ text ( String.fromInt magnitude ) ]
         ]
-
-
-
---============================================================================
---=  PORTS                                                                   =
---============================================================================
-
-
-type alias FilterOptions =
-    { url     : String
-    , filters : List { name   : String
-                     , amount : Float   
-                     }
-    }
-
-
-port setFilters : FilterOptions -> Cmd msg
-
-port activityChanges : (String -> msg) -> Sub msg
-
-
---============================================================================
---=  MAIN PROGRAM                                                            =
---============================================================================
-
-
-initialCmd : Cmd Msg
-initialCmd =
-    Http.get
-        { url = "http://elm-in-action.com/photos/list.json"
-        , expect = Http.expectJson GotPhotos ( Decode.list photoDecoder )
-        }
-
-
--- more traditional elm structure for an application
--- main : Program () Model Msg  -->  alternative:  replace unit type "()" with Never (see elm/Core.Basics)
-main : Program Float Model Msg
-main =
-    Browser.element
-        { init          = init
-        , view          = view
-        , update        = update
-        , subscriptions = \_ -> activityChanges GotActivity
-        }
-
-
-init : Float -> ( Model, Cmd Msg )
-init flags =
-    let
-        activity =
-            "Initializing Pasta v" ++ String.fromFloat flags
-    in
-    ( { initialModel | activity = activity }
-    , initialCmd 
-    )    
