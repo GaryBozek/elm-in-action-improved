@@ -3,6 +3,7 @@
     2020.04.17  GB  16  - Ch 7 - Data Modeling
                         - Using dictionaries
                     17  - Model Trees by using recursive custom types
+                    18  - Decoding Graphs and Trees
 
 
 -}
@@ -108,14 +109,40 @@ type FolderPath
     = End
     | Subfolder Int FolderPath
 
+
+type alias JsonPhoto =
+    { title       : String
+    , size        : Int
+    , relatedUrls : List String
+    }
+
   
 urlPrefix : String
 urlPrefix =
     "http://elm-in-action.com/"
 
 
+---------------------------
+--  JSON DECODERS        --
+---------------------------
+
+
+--
+-- SERVER JSON DECODER
+--
 modelDecoder : Decoder Model
 modelDecoder =
+   Decode.map2
+        ( \photos root ->
+            { photos            = photos
+            , root              = root
+            , selectedPhotoUrl  = Nothing 
+            }
+        )
+        modelPhotosDecoder
+        folderDecoder
+
+{-- Hardcoded model:
     Decode.succeed
         { selectedPhotoUrl  = Just "trevi"
         , photos            = Dict.fromList
@@ -189,6 +216,82 @@ modelDecoder =
                 } 
 
         }
+--}
+
+
+--
+-- MODEL & FOLDER DECODER
+--
+modelPhotosDecoder : Decoder (Dict String Photo)
+modelPhotosDecoder =
+    Decode.succeed modelPhotosFromJson
+        |> required "photos"      photosDecoder
+        |> required "subfolders" ( Decode.lazy ( \_ -> list modelPhotosDecoder ) )
+ 
+ 
+modelPhotosFromJson :
+    Dict String Photo
+    -> List (Dict String Photo)
+    -> Dict String Photo
+modelPhotosFromJson folderPhotos subfolderPhotos =
+    List.foldl Dict.union folderPhotos subfolderPhotos
+
+
+--
+-- FOLDER DECODER
+--
+folderDecoder : Decoder Folder
+folderDecoder =
+    Decode.succeed folderFromJson
+        |> required "name"       string
+        |> required "photos"     photosDecoder
+        |> required "subfolders" ( Decode.lazy ( \_ -> list folderDecoder ) )   -- .lazy delays evaluation until it is required
+        -- |> required "subfolders" ( list folderDecoder )                      -- cyclic definition - fails
+ 
+
+folderFromJson : String -> Dict String Photo -> List Folder -> Folder
+folderFromJson name photos subfolders =
+    Folder
+        { name       = name
+        , expanded   = True
+        , subfolders = subfolders
+        , photoUrls  = Dict.keys photos
+        }
+
+
+--
+-- PHOTOS DECODER
+--
+photosDecoder : Decoder (Dict String Photo)
+photosDecoder =
+    Decode.keyValuePairs jsonPhotoDecoder
+        |> Decode.map fromPairs
+
+ 
+jsonPhotoDecoder : Decoder JsonPhoto
+jsonPhotoDecoder =
+    Decode.succeed JsonPhoto
+        |> required "title"          string
+        |> required "size"           int
+        |> required "related_photos" ( list string )
+
+
+fromPairs : List ( String, JsonPhoto ) -> Dict String Photo
+fromPairs pairs =
+    pairs
+        |> List.map finishPhoto
+        |> Dict.fromList
+
+
+finishPhoto : ( String, JsonPhoto ) -> ( String, Photo )
+finishPhoto ( url, json ) =
+    ( url
+    , { url         = url
+      , size        = json.size
+      , title       = json.title
+      , relatedUrls = json.relatedUrls
+      }
+    )
 
 
 ---------------------------
