@@ -18,14 +18,17 @@
                         - Writing Unit Tests, JSON Decoders, Writing Fuzz Tests
                     14  - Testing Update, multiple test in one function
     2020.04.17  GB  15  - Test View, DOM structure, User Interactions
-
+    2020.04.20  GB  21  - Delegating Pages
+                        - rename to PhotoGallery.elm
+                        - expose (Model, Msg, init, update, view)
 
 
 -}
 
 
 
-port module PhotoGroove exposing (main, Model, Msg(..), Photo, Status(..), initialModel, photoDecoder, update, urlPrefix, view)
+port module PhotoGallery exposing (Model, Msg, init, subscriptions, update, view)
+--port module PhotoGroove exposing (main, Model, Msg(..), Photo, Status(..), initialModel, photoDecoder, update, urlPrefix, view)
 
 
 --import Array exposing (Array)
@@ -54,7 +57,7 @@ main =
         { init          = init
         , view          = view
         , update        = update
-        , subscriptions = \_ -> activityChanges GotActivity
+        , subscriptions = subscriptions
         }
 
 
@@ -124,7 +127,18 @@ port setFilters : FilterOptions -> Cmd msg
 port activityChanges : (String -> msg) -> Sub msg
 
 
-    
+
+--============================================================================
+--=  SUBSCRIPTIONS                                                           =
+--============================================================================
+ 
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    activityChanges GotActivity
+
+
+
 --============================================================================
 --=  APPLICATION CODE                                                        =
 --============================================================================
@@ -382,10 +396,11 @@ view model =
 
 viewLoaded : List Photo -> String -> Model -> List (Html Msg)
 viewLoaded photos selectedUrl model = 
-        [ h1 
+{--        [ h1 
             [] 
             [ text "Photo Groove" ]
-        , button
+        , --}
+        [ button
             [ onClick ClickedSurpriseMe ]
             [ text "Surprise Me!"       ]
         , div 

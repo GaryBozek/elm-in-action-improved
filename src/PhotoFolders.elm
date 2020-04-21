@@ -4,17 +4,19 @@
                         - Using dictionaries
                     17  - Model Trees by using recursive custom types
                     18  - Decoding Graphs and Trees
+    2020.04.20  GB  21  - Delegating Pages
+                        - expose (Model, Msg, init, update, view)
 
 
 -}
 
-module PhotoFolders exposing (main)
+module PhotoFolders exposing (Model, Msg, init, update, view)
 
 
 import Browser
 import Dict                             exposing (Dict)
 import Html                             exposing (..)
-import Html.Attributes                  exposing ( class, src )
+import Html.Attributes                  exposing ( class, href, src )
 import Html.Events                      exposing ( onClick )
 import Http
 import Json.Decode          as Decode   exposing ( Decoder, int, list, string )
@@ -27,6 +29,7 @@ import Json.Decode.Pipeline             exposing ( required )
 --============================================================================
 
 
+{--  No longer needed
 main : Program () Model Msg
 main =
     Browser.element
@@ -35,11 +38,12 @@ main =
         , update        = update
         , subscriptions = \_ -> Sub.none
         }
+--}
 
  
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( initialModel
+init : Maybe String -> ( Model, Cmd Msg )
+init selectedFilename =
+    ( { initialModel | selectedPhotoUrl = selectedFilename }
     , Http.get
         { url    = "http://elm-in-action.com/folders/list"
         , expect = Http.expectJson GotInitialModel modelDecoder
@@ -321,7 +325,7 @@ update msg model =
             )
 
         GotInitialModel ( Ok newModel ) ->
-            ( newModel
+            ( { newModel | selectedPhotoUrl = model.selectedPhotoUrl }
             , Cmd.none 
             )
 
@@ -368,10 +372,11 @@ view model =
     div [ class "content" ]
         [ div 
             [ class "folders" ]
-            [ h1 
+            [ {-- h1 
                 [] 
                 [ text "Folders" ]
-            , viewFolder End model.root
+            , --}
+              viewFolder End model.root
             ]
         , div 
             [ class "selected-photo" ] 
@@ -430,7 +435,8 @@ viewFolder path (Folder folder) =
                     ( List.indexedMap viewSubfolder folder.subfolders )
                     ( List.map        viewPhoto     folder.photoUrls  )
         in
-        div [ class "folder expanded" ]
+        div 
+            [ class "folder expanded" ]
             [ folderLabel
             , div 
                 [ class "contents" ] 
@@ -454,7 +460,9 @@ appendIndex index path =
 
 viewPhoto : String -> Html Msg
 viewPhoto url =
-    div [ class "photo" 
+     a 
+        [ href    ("/photos/" ++ url)
+        , class   "photo" 
         , onClick ( ClickedPhoto url ) 
         ]
         [ text url ]

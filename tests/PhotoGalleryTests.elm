@@ -1,4 +1,4 @@
-module PhotoGrooveTests exposing (..)
+module PhotoGalleryTests exposing (..)
 
 -- Test modules:
 import Expect                           exposing ( Expectation )
@@ -12,7 +12,7 @@ import Html.Attributes      as Attr     exposing ( src )
 import Json.Decode          as Decode   exposing ( decodeString, decodeValue )
 import Json.Encode          as Encode
 -- Modules to test:
-import PhotoGroove                      
+import PhotoGallery                      
     exposing 
         ( Model
         , Msg(..)
