@@ -21,7 +21,7 @@
     2020.04.20  GB  21  - Delegating Pages
                         - rename to PhotoGallery.elm
                         - expose (Model, Msg, init, update, view)
-
+    2020.04.21  GB  22  - deduplicate urlPrefix
 
 -}
 
@@ -33,6 +33,7 @@ port module PhotoGallery exposing (Model, Msg, init, subscriptions, update, view
 
 --import Array exposing (Array)
 import Browser
+import Common
 import Html                             exposing (..)
 import Html.Attributes      as Attr     exposing (..)
 import Html.Events                      exposing (on, onClick)
@@ -142,13 +143,7 @@ subscriptions model =
 --============================================================================
 --=  APPLICATION CODE                                                        =
 --============================================================================
-    
 
--- Base URL for images
-urlPrefix : String
-urlPrefix =
-    "http://elm-in-action.com/"
- 
 
 type ThumbnailSize
     = Small
@@ -354,7 +349,7 @@ applyFilters model =
                     ]
  
                 url =
-                    urlPrefix ++ "large/" ++ selectedUrl
+                    Common.urlPrefix ++ "large/" ++ selectedUrl
             in
             ( model
             , setFilters { url     = url
@@ -446,7 +441,7 @@ viewLoaded photos selectedUrl model =
 -- Create the image url  
 viewThumbnail selectedUrl thumb =
     img
-        [ src ( urlPrefix ++ thumb.url )
+        [ src ( Common.urlPrefix ++ thumb.url )
         , title ( thumb.title ++ " [" ++ String.fromInt thumb.size ++ " KB]" )
         , classList [   ( "selected"
                         , selectedUrl == thumb.url 

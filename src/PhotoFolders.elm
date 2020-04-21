@@ -6,7 +6,7 @@
                     18  - Decoding Graphs and Trees
     2020.04.20  GB  21  - Delegating Pages
                         - expose (Model, Msg, init, update, view)
-
+    2020.04.21  GB  22  - deduplicate urlPrefix
 
 -}
 
@@ -14,6 +14,7 @@ module PhotoFolders exposing (Model, Msg, init, update, view)
 
 
 import Browser
+import Common
 import Dict                             exposing (Dict)
 import Html                             exposing (..)
 import Html.Attributes                  exposing ( class, href, src )
@@ -119,11 +120,6 @@ type alias JsonPhoto =
     , size        : Int
     , relatedUrls : List String
     }
-
-  
-urlPrefix : String
-urlPrefix =
-    "http://elm-in-action.com/"
 
 
 ---------------------------
@@ -392,7 +388,7 @@ viewSelectedPhoto photo =
             [] 
             [ text photo.title ]
         , img 
-            [ src ( urlPrefix ++ "photos/" ++ photo.url ++ "/full" ) ] 
+            [ src ( Common.urlPrefix ++ "photos/" ++ photo.url ++ "/full" ) ] 
             []
         , span 
             [] 
@@ -411,7 +407,7 @@ viewRelatedPhoto url =
     img
         [ class   "related-photo"
         , onClick ( ClickedPhoto url )
-        , src     ( urlPrefix ++ "photos/" ++ url ++ "/thumb" )
+        , src     ( Common.urlPrefix ++ "photos/" ++ url ++ "/thumb" )
         ]
         []
 
